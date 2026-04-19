@@ -195,52 +195,139 @@
       <div class="section-header">
         <span class="section-tag">Demo</span>
         <h2 class="section-title">See it in <em>action</em></h2>
-        <p class="section-subtitle">A simulated download from the Chiral Network: peers discovered, chunks verified, payment settled on-chain.</p>
+        <p class="section-subtitle">A simulated walkthrough of the Download page: search by Merkle hash, pick a seeder from the live list, and download over verified P2P chunks.</p>
       </div>
       <div class="demo-window">
         <div class="demo-titlebar">
           <span class="demo-dot demo-dot-red"></span>
           <span class="demo-dot demo-dot-yellow"></span>
           <span class="demo-dot demo-dot-green"></span>
-          <span class="demo-title">Chiral Network — Downloads</span>
+          <span class="demo-title">Chiral Network</span>
         </div>
-        <div class="demo-body">
-          <div class="demo-file">
-            <div>
-              <div class="demo-file-name">research-dataset.tar.zst</div>
-              <div class="demo-file-meta">
-                <span>128.0 MB</span>
-                <span class="demo-dot-sep">·</span>
-                <span id="demo-seeders">searching…</span>
-                <span class="demo-dot-sep">·</span>
-                <span id="demo-status" class="demo-status">Connecting</span>
+        <div class="demo-app">
+          <!-- Sidebar nav -->
+          <aside class="demo-sidebar">
+            <div class="demo-nav-item">Wallet</div>
+            <div class="demo-nav-item">Network</div>
+            <div class="demo-nav-item demo-nav-active">Download</div>
+            <div class="demo-nav-item">Drive</div>
+            <div class="demo-nav-item">Hosts</div>
+            <div class="demo-nav-item">Mining</div>
+            <div class="demo-nav-spacer"></div>
+            <div class="demo-nav-balance">
+              <span class="demo-nav-balance-label">Balance</span>
+              <span class="demo-nav-balance-value"><span id="demo-balance">125.40</span> CHI</span>
+            </div>
+          </aside>
+
+          <!-- Main content -->
+          <main class="demo-main">
+            <div class="demo-page-header">
+              <h3>Download</h3>
+              <p>Search and download files from the Chiral Network</p>
+            </div>
+
+            <!-- Search card -->
+            <div class="demo-card">
+              <div class="demo-card-title">Add New Download</div>
+              <div class="demo-search-tabs">
+                <button class="demo-tab demo-tab-hash demo-tab-active">Merkle Hash</button>
+                <button class="demo-tab demo-tab-magnet">Magnet Link</button>
+                <button class="demo-tab demo-tab-torrent">.torrent File</button>
+              </div>
+              <div class="demo-search-row">
+                <div class="demo-search-input-wrap">
+                  <input class="demo-search-input" id="demo-search-input" placeholder="Enter SHA-256 hash (64 characters)" readonly>
+                  <span class="demo-caret" id="demo-caret">|</span>
+                </div>
+                <button class="demo-btn demo-btn-primary" id="demo-search-btn">
+                  <span id="demo-search-label">Search</span>
+                </button>
               </div>
             </div>
-            <div class="demo-cost">
-              <span class="demo-cost-value" id="demo-cost">1.28</span>
-              <span class="demo-cost-unit">CHI</span>
+
+            <!-- Search results -->
+            <div class="demo-card demo-result-card" id="demo-result-card" hidden>
+              <div class="demo-file-row">
+                <div class="demo-file-icon demo-file-icon-archive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div class="demo-file-info">
+                  <div class="demo-file-name">research-dataset.tar.zst</div>
+                  <div class="demo-file-meta">
+                    <span>128.0 MB</span>
+                    <span class="demo-dot-sep">·</span>
+                    <span class="demo-seeders-count" id="demo-seeders-count">3 seeders found</span>
+                  </div>
+                  <div class="demo-hash" id="demo-hash">7ax3f4b2…c9d2f3d</div>
+                </div>
+                <div class="demo-elo-badge">Top Elo 87</div>
+              </div>
+
+              <div class="demo-seeder-divider"></div>
+
+              <div class="demo-seeder-header">
+                <span class="demo-seeder-title">Choose seeder (<span id="demo-seeder-count-inline">3</span> available)</span>
+                <div class="demo-sort-tabs">
+                  <button class="demo-sort demo-sort-active">best</button>
+                  <button class="demo-sort">elo</button>
+                  <button class="demo-sort">price</button>
+                </div>
+              </div>
+
+              <div class="demo-seeder-list" id="demo-seeder-list"></div>
+
+              <div class="demo-cost-row">
+                <div class="demo-cost-info">
+                  <span>Cost: <strong>0.001 CHI</strong> (file) + <strong>1.28 CHI</strong> (download)</span>
+                </div>
+                <button class="demo-btn demo-btn-success" id="demo-download-btn">
+                  <span id="demo-download-label">Download</span>
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="demo-progress-row">
-            <div class="demo-progress-track">
-              <div class="demo-progress-fill" id="demo-progress-bar"></div>
+
+            <!-- Active / completed download -->
+            <div class="demo-card demo-active-card" id="demo-active-card" hidden>
+              <div class="demo-card-title">
+                <span>Downloads</span>
+                <span class="demo-active-count" id="demo-active-count">1 active</span>
+              </div>
+              <div class="demo-download-item" id="demo-download-item">
+                <div class="demo-file-icon demo-file-icon-archive demo-file-icon-small">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div class="demo-download-info">
+                  <div class="demo-download-header">
+                    <span class="demo-download-name">research-dataset.tar.zst</span>
+                    <span class="demo-status-badge demo-status-downloading" id="demo-status-badge">downloading</span>
+                  </div>
+                  <div class="demo-download-meta">
+                    <span>128.0 MB</span>
+                    <span class="demo-dot-sep">·</span>
+                    <span id="demo-speed">—</span>
+                    <span class="demo-dot-sep">·</span>
+                    <span id="demo-eta">—</span>
+                    <span class="demo-dot-sep">·</span>
+                    <span>Elo 87</span>
+                  </div>
+                  <div class="demo-progress-track">
+                    <div class="demo-progress-fill" id="demo-progress-bar"></div>
+                  </div>
+                  <div class="demo-progress-stats">
+                    <span id="demo-progress-percent">0%</span>
+                    <span id="demo-progress-chunks">0 / 512 chunks</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="demo-progress-stats">
-              <span id="demo-progress-percent">0%</span>
-              <span id="demo-progress-chunks">0 / 512 chunks</span>
-            </div>
-          </div>
-          <div class="demo-log" id="demo-log" aria-live="polite"></div>
-          <div class="demo-wallet-row">
-            <div class="demo-wallet">
-              <span class="demo-wallet-label">Wallet</span>
-              <span class="demo-wallet-addr">0x7af3…2e1c</span>
-            </div>
-            <div class="demo-wallet">
-              <span class="demo-wallet-label">Balance</span>
-              <span class="demo-wallet-value"><span id="demo-balance">125.40</span> CHI</span>
-            </div>
-          </div>
+          </main>
         </div>
       </div>
     </div>

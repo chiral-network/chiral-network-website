@@ -88,111 +88,197 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
   });
 });
 
-// Simulated download demo
+// Simulated Download page demo
 (function () {
   const section = document.getElementById('demo');
   if (!section) return;
 
-  const log = document.getElementById('demo-log');
-  const progressBar = document.getElementById('demo-progress-bar');
-  const percentEl = document.getElementById('demo-progress-percent');
-  const chunksEl = document.getElementById('demo-progress-chunks');
-  const statusEl = document.getElementById('demo-status');
-  const balanceEl = document.getElementById('demo-balance');
-  const seedersEl = document.getElementById('demo-seeders');
-  const costEl = document.getElementById('demo-cost');
+  const $ = (id) => document.getElementById(id);
+  const input = $('demo-search-input');
+  const caret = $('demo-caret');
+  const searchBtn = $('demo-search-btn');
+  const searchLabel = $('demo-search-label');
+  const resultCard = $('demo-result-card');
+  const seederList = $('demo-seeder-list');
+  const downloadBtn = $('demo-download-btn');
+  const downloadLabel = $('demo-download-label');
+  const activeCard = $('demo-active-card');
+  const progressBar = $('demo-progress-bar');
+  const percentEl = $('demo-progress-percent');
+  const chunksEl = $('demo-progress-chunks');
+  const speedEl = $('demo-speed');
+  const etaEl = $('demo-eta');
+  const statusBadge = $('demo-status-badge');
+  const balanceEl = $('demo-balance');
+  const activeCountEl = $('demo-active-count');
 
-  const PEERS = ['0x8bc9…4a52', '0x3fd2…0b77', '0x9e51…c2a3', '0x24ab…dd90'];
+  const HASH = '7ax3f4b29c81d0e5a6f7b4c2d1e8f9a0b3c5d7e9f1a2b4c6d8e0f7ax3f4b2c9d2f3d';
   const TOTAL_CHUNKS = 512;
   const START_BALANCE = 125.40;
-  const COST = 1.28;
+  const DOWNLOAD_COST = 1.28;
+  const SEEDER_PRICE = 0.001;
+
+  // Seeders sorted by "best" (Elo desc, then price asc)
+  const SEEDERS = [
+    { peer: '12D3KooW…f3Ab', wallet: '0x8bc94a…4a52', elo: 87, ok: 142, fail: 3, price: '0.001' },
+    { peer: '12D3KooW…x2Pq', wallet: '0x3fd20b…0b77', elo: 72, ok: 58,  fail: 4, price: '0.001' },
+    { peer: '12D3KooW…m9Kv', wallet: '0x9e51c2…c2a3', elo: 64, ok: 31,  fail: 2, price: '0.001' }
+  ];
 
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   let running = false;
-
-  function addLog(text, type) {
-    const line = document.createElement('div');
-    line.className = 'demo-log-line demo-log-' + (type || 'info');
-    line.innerHTML = text;
-    log.appendChild(line);
-    while (log.children.length > 6) log.removeChild(log.firstChild);
-  }
+  let gen = 0; // generation id — invalidates an in-flight run when we reset
 
   function reset() {
-    log.innerHTML = '';
+    input.value = '';
+    input.placeholder = 'Enter SHA-256 hash (64 characters)';
+    caret.classList.remove('demo-caret-visible');
+    searchLabel.textContent = 'Search';
+    searchBtn.disabled = false;
+    resultCard.hidden = true;
+    seederList.innerHTML = '';
+    downloadLabel.textContent = 'Download';
+    downloadBtn.classList.remove('demo-btn-disabled');
+    activeCard.hidden = true;
     progressBar.style.width = '0%';
     percentEl.textContent = '0%';
     chunksEl.textContent = '0 / ' + TOTAL_CHUNKS + ' chunks';
-    statusEl.textContent = 'Connecting';
-    statusEl.classList.remove('demo-status-complete');
-    seedersEl.textContent = 'searching…';
+    speedEl.textContent = '—';
+    etaEl.textContent = '—';
+    statusBadge.textContent = 'downloading';
+    statusBadge.className = 'demo-status-badge demo-status-downloading';
     balanceEl.textContent = START_BALANCE.toFixed(2);
     balanceEl.classList.remove('demo-balance-flash');
-    costEl.textContent = COST.toFixed(2);
+    activeCountEl.textContent = '1 active';
   }
 
-  function prefix(label) {
-    return '<span class="demo-log-prefix">' + label + '</span>';
+  async function typeHash(myGen) {
+    caret.classList.add('demo-caret-visible');
+    for (let i = 0; i < HASH.length; i++) {
+      if (myGen !== gen) return;
+      input.value = HASH.slice(0, i + 1);
+      await wait(22);
+    }
+    caret.classList.remove('demo-caret-visible');
   }
 
-  async function run() {
-    while (running) {
-      reset();
-      await wait(600);
+  function renderSeeders() {
+    seederList.innerHTML = '';
+    SEEDERS.forEach((s, idx) => {
+      const row = document.createElement('div');
+      row.className = 'demo-seeder' + (idx === 0 ? ' demo-seeder-selected' : '');
+      row.style.animationDelay = (idx * 80) + 'ms';
+      row.innerHTML = `
+        <div class="demo-seeder-left">
+          <span class="demo-seeder-peer">${s.peer}</span>
+          <span class="demo-seeder-wallet">${s.wallet} · <span class="demo-pill-rep-ok">${s.ok}&nbsp;✓</span> <span class="demo-pill-rep-fail">${s.fail}&nbsp;✗</span></span>
+        </div>
+        <div class="demo-seeder-right">
+          <span class="demo-pill demo-pill-elo">Elo ${s.elo}</span>
+          <span class="demo-pill demo-pill-price">${s.price} CHI</span>
+        </div>`;
+      seederList.appendChild(row);
+    });
+  }
 
-      addLog(prefix('[dht]') + 'bootstrap complete — 8 peers', 'info');
-      await wait(500);
-      addLog(prefix('[dht]') + 'lookup Qm7ax…f3d → 3 seeders found', 'info');
-      seedersEl.textContent = '3 seeders';
-      await wait(500);
+  async function simulateProgress(myGen) {
+    const startMs = Date.now();
+    const totalBytes = 128 * 1024 * 1024;
+    for (let i = 1; i <= TOTAL_CHUNKS; i++) {
+      if (myGen !== gen) return;
+      const pct = Math.round((i / TOTAL_CHUNKS) * 100);
+      progressBar.style.width = pct + '%';
+      percentEl.textContent = pct + '%';
+      chunksEl.textContent = i + ' / ' + TOTAL_CHUNKS + ' chunks';
 
-      statusEl.textContent = 'Downloading';
-      addLog(prefix('[xfer]') + 'opening streams to ' + PEERS.slice(0, 3).join(', '), 'info');
-      await wait(400);
-
-      for (let i = 1; i <= TOTAL_CHUNKS; i++) {
-        const peer = PEERS[i % PEERS.length];
-        if (i === 1 || i === 32 || i === 128 || i === 320 || i === TOTAL_CHUNKS) {
-          addLog(
-            prefix('[chunk ' + i + '/' + TOTAL_CHUNKS + ']') +
-              'from ' + peer + ' — sha-256 ok',
-            'chunk'
-          );
-        }
-        const pct = Math.round((i / TOTAL_CHUNKS) * 100);
-        progressBar.style.width = pct + '%';
-        percentEl.textContent = pct + '%';
-        chunksEl.textContent = i + ' / ' + TOTAL_CHUNKS + ' chunks';
-        await wait(14);
-      }
-
-      await wait(300);
-      addLog(prefix('[hash]') + 'full-file sha-256 verified', 'ok');
-      await wait(500);
-      addLog(prefix('[tx]') + 'sent ' + COST.toFixed(2) + ' CHI → 0x8bc9…4a52', 'tx');
-      balanceEl.textContent = (START_BALANCE - COST).toFixed(2);
-      balanceEl.classList.add('demo-balance-flash');
-      await wait(500);
-      addLog(prefix('[ok]') + 'download complete', 'ok');
-      statusEl.textContent = 'Complete';
-      statusEl.classList.add('demo-status-complete');
-
-      await wait(5000);
+      const elapsed = (Date.now() - startMs) / 1000;
+      const bytesDone = (i / TOTAL_CHUNKS) * totalBytes;
+      const bps = bytesDone / Math.max(elapsed, 0.001);
+      speedEl.textContent = formatSpeed(bps);
+      const remaining = (totalBytes - bytesDone) / bps;
+      etaEl.textContent = formatEta(remaining) + ' remaining';
+      await wait(14);
     }
   }
 
+  function formatSpeed(bps) {
+    if (bps > 1024 * 1024) return (bps / (1024 * 1024)).toFixed(1) + ' MB/s';
+    if (bps > 1024) return (bps / 1024).toFixed(0) + ' KB/s';
+    return Math.round(bps) + ' B/s';
+  }
+
+  function formatEta(sec) {
+    if (!isFinite(sec) || sec < 0) return '—';
+    if (sec < 60) return Math.ceil(sec) + 's';
+    return Math.ceil(sec / 60) + 'm';
+  }
+
+  async function run(myGen) {
+    // 1. Idle → type hash into search
+    reset();
+    await wait(800);
+    if (myGen !== gen) return;
+
+    await typeHash(myGen);
+    if (myGen !== gen) return;
+    await wait(400);
+
+    // 2. Click Search → searching state
+    searchLabel.textContent = 'Searching…';
+    searchBtn.disabled = true;
+    await wait(900);
+    if (myGen !== gen) return;
+
+    // 3. Result card appears with seeder list
+    searchLabel.textContent = 'Search';
+    searchBtn.disabled = false;
+    resultCard.hidden = false;
+    renderSeeders();
+    await wait(1800);
+    if (myGen !== gen) return;
+
+    // 4. Click Download → processing payment
+    downloadLabel.textContent = 'Processing…';
+    downloadBtn.classList.add('demo-btn-disabled');
+    await wait(1100);
+    if (myGen !== gen) return;
+
+    // 5. Payment settles: 99.5% burn + 0.5% platform, balance drops
+    balanceEl.textContent = (START_BALANCE - DOWNLOAD_COST - SEEDER_PRICE).toFixed(2);
+    balanceEl.classList.add('demo-balance-flash');
+    downloadLabel.textContent = 'Download';
+
+    // 6. Active download card appears, progress ticks
+    activeCard.hidden = false;
+    await simulateProgress(myGen);
+    if (myGen !== gen) return;
+
+    // 7. Completed: badge flips green, speed/eta cleared
+    statusBadge.textContent = 'completed';
+    statusBadge.className = 'demo-status-badge demo-status-completed';
+    activeCountEl.textContent = '1 completed';
+    speedEl.textContent = '—';
+    etaEl.textContent = 'done';
+
+    await wait(5500);
+    if (myGen !== gen) return;
+    run(myGen); // loop
+  }
+
   const observer = new IntersectionObserver(
-    function (entries) {
-      entries.forEach(function (entry) {
+    (entries) => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting && !running) {
           running = true;
-          run();
-        } else if (!entry.isIntersecting) {
+          gen += 1;
+          run(gen);
+        } else if (!entry.isIntersecting && running) {
           running = false;
+          gen += 1; // invalidate in-flight run
         }
       });
     },
-    { threshold: 0.25 }
+    { threshold: 0.2 }
   );
   observer.observe(section);
 })();
