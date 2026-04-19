@@ -28,6 +28,7 @@
       </a>
       <div class="nav-links">
         <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
         <a href="#how-it-works">How It Works</a>
         <a href="#technology">Technology</a>
         <a href="#stats">Stats</a>
@@ -183,6 +184,63 @@
           </div>
           <h3>ChiralDrop</h3>
           <p>Direct peer-to-peer file transfers with optional pricing. Send files instantly to any connected peer on the network.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section class="section" id="demo">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Demo</span>
+        <h2 class="section-title">See it in <em>action</em></h2>
+        <p class="section-subtitle">A simulated download from the Chiral Network: peers discovered, chunks verified, payment settled on-chain.</p>
+      </div>
+      <div class="demo-window">
+        <div class="demo-titlebar">
+          <span class="demo-dot demo-dot-red"></span>
+          <span class="demo-dot demo-dot-yellow"></span>
+          <span class="demo-dot demo-dot-green"></span>
+          <span class="demo-title">Chiral Network — Downloads</span>
+        </div>
+        <div class="demo-body">
+          <div class="demo-file">
+            <div>
+              <div class="demo-file-name">research-dataset.tar.zst</div>
+              <div class="demo-file-meta">
+                <span>128.0 MB</span>
+                <span class="demo-dot-sep">·</span>
+                <span id="demo-seeders">searching…</span>
+                <span class="demo-dot-sep">·</span>
+                <span id="demo-status" class="demo-status">Connecting</span>
+              </div>
+            </div>
+            <div class="demo-cost">
+              <span class="demo-cost-value" id="demo-cost">1.28</span>
+              <span class="demo-cost-unit">CHI</span>
+            </div>
+          </div>
+          <div class="demo-progress-row">
+            <div class="demo-progress-track">
+              <div class="demo-progress-fill" id="demo-progress-bar"></div>
+            </div>
+            <div class="demo-progress-stats">
+              <span id="demo-progress-percent">0%</span>
+              <span id="demo-progress-chunks">0 / 512 chunks</span>
+            </div>
+          </div>
+          <div class="demo-log" id="demo-log" aria-live="polite"></div>
+          <div class="demo-wallet-row">
+            <div class="demo-wallet">
+              <span class="demo-wallet-label">Wallet</span>
+              <span class="demo-wallet-addr">0x7af3…2e1c</span>
+            </div>
+            <div class="demo-wallet">
+              <span class="demo-wallet-label">Balance</span>
+              <span class="demo-wallet-value"><span id="demo-balance">125.40</span> CHI</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

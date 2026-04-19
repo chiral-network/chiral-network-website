@@ -87,3 +87,112 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     }
   });
 });
+
+// Simulated download demo
+(function () {
+  const section = document.getElementById('demo');
+  if (!section) return;
+
+  const log = document.getElementById('demo-log');
+  const progressBar = document.getElementById('demo-progress-bar');
+  const percentEl = document.getElementById('demo-progress-percent');
+  const chunksEl = document.getElementById('demo-progress-chunks');
+  const statusEl = document.getElementById('demo-status');
+  const balanceEl = document.getElementById('demo-balance');
+  const seedersEl = document.getElementById('demo-seeders');
+  const costEl = document.getElementById('demo-cost');
+
+  const PEERS = ['0x8bc9…4a52', '0x3fd2…0b77', '0x9e51…c2a3', '0x24ab…dd90'];
+  const TOTAL_CHUNKS = 512;
+  const START_BALANCE = 125.40;
+  const COST = 1.28;
+
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  let running = false;
+
+  function addLog(text, type) {
+    const line = document.createElement('div');
+    line.className = 'demo-log-line demo-log-' + (type || 'info');
+    line.innerHTML = text;
+    log.appendChild(line);
+    while (log.children.length > 6) log.removeChild(log.firstChild);
+  }
+
+  function reset() {
+    log.innerHTML = '';
+    progressBar.style.width = '0%';
+    percentEl.textContent = '0%';
+    chunksEl.textContent = '0 / ' + TOTAL_CHUNKS + ' chunks';
+    statusEl.textContent = 'Connecting';
+    statusEl.classList.remove('demo-status-complete');
+    seedersEl.textContent = 'searching…';
+    balanceEl.textContent = START_BALANCE.toFixed(2);
+    balanceEl.classList.remove('demo-balance-flash');
+    costEl.textContent = COST.toFixed(2);
+  }
+
+  function prefix(label) {
+    return '<span class="demo-log-prefix">' + label + '</span>';
+  }
+
+  async function run() {
+    while (running) {
+      reset();
+      await wait(600);
+
+      addLog(prefix('[dht]') + 'bootstrap complete — 8 peers', 'info');
+      await wait(500);
+      addLog(prefix('[dht]') + 'lookup Qm7ax…f3d → 3 seeders found', 'info');
+      seedersEl.textContent = '3 seeders';
+      await wait(500);
+
+      statusEl.textContent = 'Downloading';
+      addLog(prefix('[xfer]') + 'opening streams to ' + PEERS.slice(0, 3).join(', '), 'info');
+      await wait(400);
+
+      for (let i = 1; i <= TOTAL_CHUNKS; i++) {
+        const peer = PEERS[i % PEERS.length];
+        if (i === 1 || i === 32 || i === 128 || i === 320 || i === TOTAL_CHUNKS) {
+          addLog(
+            prefix('[chunk ' + i + '/' + TOTAL_CHUNKS + ']') +
+              'from ' + peer + ' — sha-256 ok',
+            'chunk'
+          );
+        }
+        const pct = Math.round((i / TOTAL_CHUNKS) * 100);
+        progressBar.style.width = pct + '%';
+        percentEl.textContent = pct + '%';
+        chunksEl.textContent = i + ' / ' + TOTAL_CHUNKS + ' chunks';
+        await wait(14);
+      }
+
+      await wait(300);
+      addLog(prefix('[hash]') + 'full-file sha-256 verified', 'ok');
+      await wait(500);
+      addLog(prefix('[tx]') + 'sent ' + COST.toFixed(2) + ' CHI → 0x8bc9…4a52', 'tx');
+      balanceEl.textContent = (START_BALANCE - COST).toFixed(2);
+      balanceEl.classList.add('demo-balance-flash');
+      await wait(500);
+      addLog(prefix('[ok]') + 'download complete', 'ok');
+      statusEl.textContent = 'Complete';
+      statusEl.classList.add('demo-status-complete');
+
+      await wait(5000);
+    }
+  }
+
+  const observer = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && !running) {
+          running = true;
+          run();
+        } else if (!entry.isIntersecting) {
+          running = false;
+        }
+      });
+    },
+    { threshold: 0.25 }
+  );
+  observer.observe(section);
+})();
