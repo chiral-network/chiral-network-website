@@ -2,7 +2,7 @@
 
 // Countdown Timer
 (function () {
-  const target = new Date('2026-05-22T00:00:00Z').getTime();
+  const target = new Date(2026, 4, 22, 0, 0, 0).getTime();
 
   function update() {
     const now = Date.now();
