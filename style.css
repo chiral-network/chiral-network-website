@@ -904,6 +904,21 @@ body {
 }
 
 /* ============================================
+   Preview Page
+   ============================================ */
+
+.preview-back {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.nav-links a[aria-current="page"] {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ============================================
    Demo Section — Chiral Network app mockup
    ============================================ */
 
