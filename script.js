@@ -103,6 +103,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
   const downloadBtn = $('demo-download-btn');
   const downloadLabel = $('demo-download-label');
   const activeCard = $('demo-active-card');
+  const downloadItem = $('demo-download-item');
   const progressBar = $('demo-progress-bar');
   const percentEl = $('demo-progress-percent');
   const chunksEl = $('demo-progress-chunks');
@@ -111,12 +112,15 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
   const statusBadge = $('demo-status-badge');
   const balanceEl = $('demo-balance');
   const activeCountEl = $('demo-active-count');
+  const video = $('demo-video');
 
+  const VIDEO_URL = 'preview-demo.mp4';
   const HASH = '7ax3f4b29c81d0e5a6f7b4c2d1e8f9a0b3c5d7e9f1a2b4c6d8e0f7ax3f4b2c9d2f3d';
-  const TOTAL_CHUNKS = 512;
+  const TOTAL_CHUNKS = 20; // 5 MB / 256 KB
   const START_BALANCE = 125.40;
-  const DOWNLOAD_COST = 1.28;
+  const DOWNLOAD_COST = 0.05; // 5 MB × 0.01 CHI/MB
   const SEEDER_PRICE = 0.001;
+  let cachedBlobUrl = null;
 
   // Seeders sorted by "best" (Elo desc, then price asc)
   const SEEDERS = [
@@ -140,6 +144,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     downloadLabel.textContent = 'Download';
     downloadBtn.classList.remove('demo-btn-disabled');
     activeCard.hidden = true;
+    downloadItem.hidden = false;
     progressBar.style.width = '0%';
     percentEl.textContent = '0%';
     chunksEl.textContent = '0 / ' + TOTAL_CHUNKS + ' chunks';
@@ -150,6 +155,9 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     balanceEl.textContent = START_BALANCE.toFixed(2);
     balanceEl.classList.remove('demo-balance-flash');
     activeCountEl.textContent = '1 active';
+    video.hidden = true;
+    if (!video.paused) video.pause();
+    video.currentTime = 0;
   }
 
   async function typeHash(myGen) {
@@ -181,23 +189,62 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     });
   }
 
-  async function simulateProgress(myGen) {
+  function updateProgress(received, total, startMs) {
+    const ratio = total > 0 ? Math.min(received / total, 1) : 0;
+    const pct = Math.round(ratio * 100);
+    progressBar.style.width = pct + '%';
+    percentEl.textContent = pct + '%';
+    const chunksDone = Math.min(Math.round(ratio * TOTAL_CHUNKS), TOTAL_CHUNKS);
+    chunksEl.textContent = chunksDone + ' / ' + TOTAL_CHUNKS + ' chunks';
+    const elapsed = (Date.now() - startMs) / 1000;
+    const bps = received / Math.max(elapsed, 0.001);
+    speedEl.textContent = formatSpeed(bps);
+    if (bps > 0 && total > 0) {
+      etaEl.textContent = formatEta((total - received) / bps) + ' remaining';
+    }
+  }
+
+  async function realDownload(myGen) {
     const startMs = Date.now();
-    const totalBytes = 128 * 1024 * 1024;
+    try {
+      const resp = await fetch(VIDEO_URL);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const total = +resp.headers.get('Content-Length') || 5 * 1024 * 1024;
+      const reader = resp.body.getReader();
+      const chunks = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (myGen !== gen) { reader.cancel(); return null; }
+        chunks.push(value);
+        received += value.length;
+        updateProgress(received, total, startMs);
+      }
+      // Ensure progress reads 100% even if Content-Length was off
+      updateProgress(total, total, startMs);
+      const blob = new Blob(chunks, { type: 'video/mp4' });
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.warn('demo download failed:', e);
+      // Fall back to fake progress so the demo still tells the story
+      for (let i = 1; i <= TOTAL_CHUNKS; i++) {
+        if (myGen !== gen) return null;
+        const fakeBytes = (i / TOTAL_CHUNKS) * 5 * 1024 * 1024;
+        updateProgress(fakeBytes, 5 * 1024 * 1024, startMs);
+        await wait(80);
+      }
+      return null;
+    }
+  }
+
+  async function fakeProgress(myGen) {
+    const startMs = Date.now();
+    const total = 5 * 1024 * 1024;
     for (let i = 1; i <= TOTAL_CHUNKS; i++) {
       if (myGen !== gen) return;
-      const pct = Math.round((i / TOTAL_CHUNKS) * 100);
-      progressBar.style.width = pct + '%';
-      percentEl.textContent = pct + '%';
-      chunksEl.textContent = i + ' / ' + TOTAL_CHUNKS + ' chunks';
-
-      const elapsed = (Date.now() - startMs) / 1000;
-      const bytesDone = (i / TOTAL_CHUNKS) * totalBytes;
-      const bps = bytesDone / Math.max(elapsed, 0.001);
-      speedEl.textContent = formatSpeed(bps);
-      const remaining = (totalBytes - bytesDone) / bps;
-      etaEl.textContent = formatEta(remaining) + ' remaining';
-      await wait(14);
+      updateProgress((i / TOTAL_CHUNKS) * total, total, startMs);
+      await wait(140);
     }
   }
 
@@ -248,9 +295,17 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     balanceEl.classList.add('demo-balance-flash');
     downloadLabel.textContent = 'Download';
 
-    // 6. Active download card appears, progress ticks
+    // 6. Active download card appears, real fetch streams in
     activeCard.hidden = false;
-    await simulateProgress(myGen);
+    let blobUrl;
+    if (cachedBlobUrl) {
+      // already downloaded once — replay simulated progress for the loop
+      await fakeProgress(myGen);
+      blobUrl = cachedBlobUrl;
+    } else {
+      blobUrl = await realDownload(myGen);
+      if (blobUrl) cachedBlobUrl = blobUrl;
+    }
     if (myGen !== gen) return;
 
     // 7. Completed: badge flips green, speed/eta cleared
@@ -260,7 +315,25 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     speedEl.textContent = '—';
     etaEl.textContent = 'done';
 
-    await wait(5500);
+    // 8. Play the actual downloaded file inline
+    if (blobUrl) {
+      await wait(400);
+      if (myGen !== gen) return;
+      downloadItem.hidden = true;
+      video.src = blobUrl;
+      video.hidden = false;
+      try { await video.play(); } catch (_) { /* autoplay blocked */ }
+
+      // Wait for video to end (or 12s safety cap), then loop
+      await new Promise((resolve) => {
+        let done = false;
+        const finish = () => { if (!done) { done = true; resolve(); } };
+        video.addEventListener('ended', finish, { once: true });
+        setTimeout(finish, 12000);
+      });
+    } else {
+      await wait(4000);
+    }
     if (myGen !== gen) return;
     run(myGen); // loop
   }

@@ -1191,6 +1191,21 @@ body {
   color: #f59e0b;
 }
 
+.demo-file-icon-video {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+}
+
+.demo-video {
+  width: 100%;
+  max-height: 320px;
+  border-radius: var(--radius-xs);
+  background: #000;
+  display: block;
+  border: 1px solid var(--border);
+  margin-top: 4px;
+}
+
 .demo-file-icon svg { width: 22px; height: 22px; }
 .demo-file-icon-small { width: 36px; height: 36px; }
 .demo-file-icon-small svg { width: 18px; height: 18px; }

@@ -102,9 +102,9 @@
                   </svg>
                 </div>
                 <div class="demo-file-info">
-                  <div class="demo-file-name">research-dataset.tar.zst</div>
+                  <div class="demo-file-name">big-buck-bunny.mp4</div>
                   <div class="demo-file-meta">
-                    <span>128.0 MB</span>
+                    <span>5.0 MB</span>
                     <span class="demo-dot-sep">·</span>
                     <span class="demo-seeders-count" id="demo-seeders-count">3 seeders found</span>
                   </div>
@@ -128,7 +128,7 @@
 
               <div class="demo-cost-row">
                 <div class="demo-cost-info">
-                  <span>Cost: <strong>0.001 CHI</strong> (file) + <strong>1.28 CHI</strong> (download)</span>
+                  <span>Cost: <strong>0.001 CHI</strong> (file) + <strong>0.05 CHI</strong> (download)</span>
                 </div>
                 <button class="demo-btn demo-btn-success" id="demo-download-btn">
                   <span id="demo-download-label">Download</span>
@@ -142,19 +142,19 @@
                 <span class="demo-active-count" id="demo-active-count">1 active</span>
               </div>
               <div class="demo-download-item" id="demo-download-item">
-                <div class="demo-file-icon demo-file-icon-archive demo-file-icon-small">
+                <div class="demo-file-icon demo-file-icon-video demo-file-icon-small">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
+                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
                 </div>
                 <div class="demo-download-info">
                   <div class="demo-download-header">
-                    <span class="demo-download-name">research-dataset.tar.zst</span>
+                    <span class="demo-download-name">big-buck-bunny.mp4</span>
                     <span class="demo-status-badge demo-status-downloading" id="demo-status-badge">downloading</span>
                   </div>
                   <div class="demo-download-meta">
-                    <span>128.0 MB</span>
+                    <span>5.0 MB</span>
                     <span class="demo-dot-sep">·</span>
                     <span id="demo-speed">—</span>
                     <span class="demo-dot-sep">·</span>
@@ -167,10 +167,12 @@
                   </div>
                   <div class="demo-progress-stats">
                     <span id="demo-progress-percent">0%</span>
-                    <span id="demo-progress-chunks">0 / 512 chunks</span>
+                    <span id="demo-progress-chunks">0 / 20 chunks</span>
                   </div>
                 </div>
               </div>
+
+              <video class="demo-video" id="demo-video" muted playsinline preload="none" hidden></video>
             </div>
           </main>
         </div>
