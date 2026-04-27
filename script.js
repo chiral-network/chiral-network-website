@@ -156,8 +156,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     balanceEl.classList.remove('demo-balance-flash');
     activeCountEl.textContent = '1 active';
     video.hidden = true;
-    if (!video.paused) video.pause();
-    video.currentTime = 0;
+    if (video.src && !video.paused) video.pause();
   }
 
   async function typeHash(myGen) {
@@ -320,16 +319,34 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
       await wait(400);
       if (myGen !== gen) return;
       downloadItem.hidden = true;
-      video.src = blobUrl;
       video.hidden = false;
-      try { await video.play(); } catch (_) { /* autoplay blocked */ }
+      video.muted = true;
+      video.playsInline = true;
+      if (video.src !== blobUrl) {
+        video.src = blobUrl;
+        video.load();
+        await new Promise((resolve) => {
+          const ready = () => resolve();
+          video.addEventListener('canplay', ready, { once: true });
+          video.addEventListener('error', ready, { once: true });
+          setTimeout(ready, 3000);
+        });
+      } else {
+        video.currentTime = 0;
+      }
+      if (myGen !== gen) return;
+      try {
+        await video.play();
+      } catch (err) {
+        console.warn('autoplay blocked:', err && err.message);
+      }
 
-      // Wait for video to end (or 12s safety cap), then loop
+      // Wait for video to end (or 15s safety cap), then loop
       await new Promise((resolve) => {
         let done = false;
         const finish = () => { if (!done) { done = true; resolve(); } };
         video.addEventListener('ended', finish, { once: true });
-        setTimeout(finish, 12000);
+        setTimeout(finish, 15000);
       });
     } else {
       await wait(4000);
