@@ -12,6 +12,45 @@
   display: none !important;
 }
 
+/* ============================================
+   Theme toggle
+   ============================================ */
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-left: 4px;
+  transition: all 0.2s;
+}
+
+.theme-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  background: var(--accent-glow);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+[data-theme="light"] .theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+[data-theme="light"] .theme-toggle .icon-moon {
+  display: block;
+}
+
 .genesis-header {
   margin-top: 56px;
   margin-bottom: 24px;
@@ -162,11 +201,39 @@
   --gradient-3: #06d6a0;
   --border: rgba(79, 140, 255, 0.1);
   --border-hover: rgba(79, 140, 255, 0.25);
+  --nav-scrolled-bg: rgba(5, 10, 18, 0.85);
+  --orb-opacity: 0.4;
+  --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.4);
   --radius: 16px;
   --radius-sm: 10px;
   --radius-xs: 6px;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-alt: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --accent: #2563eb;
+  --accent-bright: #1d4ed8;
+  --accent-dim: #93c5fd;
+  --accent-glow: rgba(37, 99, 235, 0.08);
+  --gradient-1: #2563eb;
+  --gradient-2: #9333ea;
+  --gradient-3: #059669;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.18);
+  --nav-scrolled-bg: rgba(255, 255, 255, 0.85);
+  --orb-opacity: 0.18;
+  --shadow-strong: 0 20px 60px rgba(15, 23, 42, 0.08);
+  color-scheme: light;
 }
 
 html {
@@ -199,7 +266,7 @@ body {
   position: absolute;
   border-radius: 50%;
   filter: blur(100px);
-  opacity: 0.4;
+  opacity: var(--orb-opacity);
 }
 
 .orb-1 {
@@ -262,7 +329,7 @@ body {
 }
 
 .nav.scrolled {
-  background: rgba(5, 10, 18, 0.85);
+  background: var(--nav-scrolled-bg);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
 }

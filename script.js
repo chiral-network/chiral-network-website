@@ -1,5 +1,21 @@
 // Chiral Network — Launch Site Scripts
 
+// Theme toggle
+(function () {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      try { localStorage.setItem('chiral-theme', 'dark'); } catch (_) {}
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      try { localStorage.setItem('chiral-theme', 'light'); } catch (_) {}
+    }
+  });
+})();
+
 // Countdown Timer
 (function () {
   const daysEl = document.getElementById('days');
