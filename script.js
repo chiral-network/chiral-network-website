@@ -209,6 +209,8 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     }
   }
 
+  const CHUNK_DELAY_MS = 380; // pace UI updates so each chunk is visible
+
   async function realDownload(myGen) {
     const startMs = Date.now();
     try {
@@ -217,28 +219,45 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
       const total = +resp.headers.get('Content-Length') || 5 * 1024 * 1024;
       const reader = resp.body.getReader();
       const chunks = [];
-      let received = 0;
+      let realReceived = 0;
+      let nextUIChunk = 1;
+
+      const advanceUI = async () => {
+        while (
+          nextUIChunk <= TOTAL_CHUNKS &&
+          realReceived / total >= nextUIChunk / TOTAL_CHUNKS
+        ) {
+          if (myGen !== gen) return;
+          const shown = (nextUIChunk / TOTAL_CHUNKS) * total;
+          updateProgress(shown, total, startMs);
+          nextUIChunk += 1;
+          if (nextUIChunk <= TOTAL_CHUNKS) await wait(CHUNK_DELAY_MS);
+        }
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         if (myGen !== gen) { reader.cancel(); return null; }
         chunks.push(value);
-        received += value.length;
-        updateProgress(received, total, startMs);
+        realReceived += value.length;
+        await advanceUI();
+        if (myGen !== gen) return null;
       }
-      // Ensure progress reads 100% even if Content-Length was off
+      // Drain any remaining UI chunks if real bytes finished early
+      while (nextUIChunk <= TOTAL_CHUNKS) {
+        if (myGen !== gen) return null;
+        const shown = (nextUIChunk / TOTAL_CHUNKS) * total;
+        updateProgress(shown, total, startMs);
+        nextUIChunk += 1;
+        if (nextUIChunk <= TOTAL_CHUNKS) await wait(CHUNK_DELAY_MS);
+      }
       updateProgress(total, total, startMs);
       const blob = new Blob(chunks, { type: 'video/mp4' });
       return URL.createObjectURL(blob);
     } catch (e) {
       console.warn('demo download failed:', e);
-      // Fall back to fake progress so the demo still tells the story
-      for (let i = 1; i <= TOTAL_CHUNKS; i++) {
-        if (myGen !== gen) return null;
-        const fakeBytes = (i / TOTAL_CHUNKS) * 5 * 1024 * 1024;
-        updateProgress(fakeBytes, 5 * 1024 * 1024, startMs);
-        await wait(80);
-      }
+      await fakeProgress(myGen);
       return null;
     }
   }
@@ -249,7 +268,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     for (let i = 1; i <= TOTAL_CHUNKS; i++) {
       if (myGen !== gen) return;
       updateProgress((i / TOTAL_CHUNKS) * total, total, startMs);
-      await wait(140);
+      await wait(CHUNK_DELAY_MS);
     }
   }
 
