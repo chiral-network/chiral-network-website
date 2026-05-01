@@ -384,7 +384,7 @@ body {
 }
 
 .nav-github:hover {
-  color: #e8edf5;
+  color: var(--text-primary);
 }
 
 .nav-github svg {
@@ -587,7 +587,14 @@ body {
 }
 
 .section-dark {
-  background: var(--bg-secondary);
+  background: #0a1120;
+  /* Force dark-mode tokens inside this band so it always reads
+     as a dark contrast section, even when the page is in light mode. */
+  --text-primary: #e8edf5;
+  --text-secondary: #8896ab;
+  --text-tertiary: #5a6a80;
+  --border: rgba(79, 140, 255, 0.18);
+  --bg-card: rgba(255, 255, 255, 0.03);
 }
 
 .section-inner {
@@ -636,7 +643,7 @@ body {
 }
 
 .section-title-light {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .section-title-light em {
