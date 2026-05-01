@@ -319,7 +319,29 @@
         <h3 class="genesis-title">Genesis Block</h3>
         <p class="genesis-subtitle">Block 0 — the cryptographic root of the CHI chain. These values define the initial state every node must agree on.</p>
       </div>
+
+      <div class="no-premine-callout">
+        <div class="no-premine-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="no-premine-text">
+          <h4>No pre-mine. No founder allocation. No insider supply.</h4>
+          <p>The genesis block ships with <code>"alloc": {}</code> — the allocation map is empty, so no wallet holds CHI when the chain starts. The coinbase is the zero address, so no party receives the genesis reward. Every CHI that ever exists must be mined after launch, on the public network, by anyone with a CPU or GPU. You can verify this yourself: run <code>geth init genesis.json</code> and inspect block 0.</p>
+        </div>
+      </div>
+
       <div class="chain-specs">
+        <div class="chain-spec chain-spec-highlight">
+          <span class="chain-spec-label">Pre-mine Allocation</span>
+          <span class="chain-spec-value">{ } &nbsp;<span class="chain-spec-note">empty</span></span>
+        </div>
+        <div class="chain-spec chain-spec-highlight">
+          <span class="chain-spec-label">Coinbase</span>
+          <span class="chain-spec-value">0x0000…0000 &nbsp;<span class="chain-spec-note">zero addr</span></span>
+        </div>
         <div class="chain-spec">
           <span class="chain-spec-label">Difficulty</span>
           <span class="chain-spec-value">0x10000</span>
@@ -331,14 +353,6 @@
         <div class="chain-spec">
           <span class="chain-spec-label">Timestamp</span>
           <span class="chain-spec-value">0x0 (epoch)</span>
-        </div>
-        <div class="chain-spec">
-          <span class="chain-spec-label">Coinbase</span>
-          <span class="chain-spec-value">0x0000…0000</span>
-        </div>
-        <div class="chain-spec">
-          <span class="chain-spec-label">Pre-mine</span>
-          <span class="chain-spec-value">None</span>
         </div>
         <div class="chain-spec">
           <span class="chain-spec-label">Extra Data</span>
@@ -353,8 +367,8 @@
     "chainId": 98763,
     "ethash": {}
   },
-  "alloc": {},
-  "coinbase": "0x0000000000000000000000000000000000000000",
+  <span class="genesis-highlight">"alloc": {},</span>
+  <span class="genesis-highlight">"coinbase": "0x0000000000000000000000000000000000000000",</span>
   "difficulty": "0x10000",
   "extraData": "0x43686972616c2046726573686e65742076310000000000000000000000000000",
   "gasLimit": "0x47b760",
