@@ -361,7 +361,8 @@ body {
 
 .nav-links {
   display: flex;
-  gap: 32px;
+  align-items: center;
+  gap: 24px;
 }
 
 .nav-links a {
@@ -379,7 +380,7 @@ body {
 .nav-github {
   display: flex;
   align-items: center;
-  color: #8896ab;
+  color: var(--text-secondary);
   transition: color 0.2s;
 }
 
