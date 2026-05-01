@@ -12,6 +12,63 @@
   display: none !important;
 }
 
+.genesis-header {
+  margin-top: 56px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.genesis-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.genesis-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.genesis-json {
+  margin-top: 32px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.genesis-json summary {
+  cursor: pointer;
+  color: var(--accent-bright);
+  font-size: 0.85rem;
+  padding: 8px 0;
+  user-select: none;
+}
+
+.genesis-json summary:hover {
+  color: var(--accent);
+}
+
+.genesis-json pre {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin-top: 12px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.genesis-json pre code {
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
 :root {
   --bg-primary: #050a12;
   --bg-secondary: #0a1120;
